@@ -34,12 +34,13 @@
         .container { 
             background-color: var(--card-bg); 
             width: 100%;
-            max-width: 1000px;
+            max-width: 1100px;
             border-radius: 16px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
             border: 1px solid var(--border-color);
             position: relative;
-            overflow: hidden;
+            /* Changed from hidden to auto to allow scrolling on small devices if needed */
+            overflow: hidden; 
             min-height: 550px;
             display: flex;
             flex-direction: column;
@@ -93,13 +94,11 @@
             color: var(--accent-blue);
             text-decoration: none;
         }
-        .reference a:hover {
-            text-decoration: underline;
-        }
+        .reference a:hover { text-decoration: underline; }
 
         p.subtitle { text-align: center; color: var(--text-muted); margin-bottom: 40px; line-height: 1.6; }
 
-        /* Analog Scale Grid */
+        /* Analog Scale Grid - Desktop Default */
         .analog-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -118,8 +117,6 @@
             align-items: center;
             padding: 15px;
             position: relative;
-            overflow: hidden;
-            min-height: 140px;
         }
 
         .analog-option:hover {
@@ -133,29 +130,54 @@
             box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
         }
 
-        /* Text Container for Descriptions */
-        .text-container {
+        /* Image Container */
+        .image-container {
             width: 100%;
-            flex-grow: 1;
+            height: 140px;
             background: #121212;
             border-radius: 6px;
             margin-bottom: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 15px 10px;
+            overflow: hidden;
+            padding: 5px;
             box-sizing: border-box;
-            text-align: center;
-            font-size: 14px;
-            color: #d0d0d0;
             border: 1px solid #333;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+            border-radius: 4px;
+        }
+
+        .img-fallback {
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* Text Description inside Option */
+        .option-desc {
+            font-size: 13px;
+            color: #d0d0d0;
+            text-align: center;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             line-height: 1.4;
+            margin-bottom: 15px;
         }
 
         .option-label {
             font-size: 20px;
             font-weight: bold;
             color: var(--text-main);
+            margin-top: auto;
         }
 
         /* Navigation Buttons */
@@ -205,13 +227,49 @@
             width: 100%; height: 6px; background: #333; position: absolute; bottom: 0; left: 0; display: none;
         }
         .progress-bar-fill { height: 100%; background: var(--accent-blue); width: 0%; transition: width 0.3s ease; }
+
+        /* =========================================
+           MOBILE RESPONSIVENESS (Media Queries)
+           ========================================= */
+        @media (max-width: 1000px) {
+            .analog-grid {
+                grid-template-columns: repeat(3, 1fr); /* 3 columns on small laptops/tablets */
+            }
+            .screen { padding: 30px 20px; }
+        }
+
+        @media (max-width: 650px) {
+            body { padding: 10px; }
+            .analog-grid {
+                grid-template-columns: 1fr; /* 1 column stack on mobile */
+            }
+            .image-container {
+                height: auto;
+                min-height: 120px;
+            }
+            .navigation {
+                flex-direction: column-reverse; /* Put 'Next' button on top for easier tapping */
+                gap: 15px;
+            }
+            .btn {
+                width: 100%; /* Full width buttons */
+                padding: 15px;
+            }
+            .live-score {
+                position: relative;
+                top: 0; right: 0;
+                margin-bottom: 20px;
+                text-align: center;
+                display: inline-block;
+            }
+            h1 { font-size: 24px; }
+            h2 { font-size: 18px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="live-score" id="liveScoreBadge">Acceptable Traits: 0%</div>
-    
     <div class="progress-bar-container" id="progressBar">
         <div class="progress-bar-fill" id="progressFill"></div>
     </div>
@@ -231,6 +289,7 @@
     </div>
 
     <div class="screen" id="screen-question">
+        <div class="live-score" id="liveScoreBadge">Acceptable Traits: 0%</div>
         <div style="color: var(--accent-blue); font-weight: bold; margin-bottom: 10px;" id="questionNumber">Item 1 of 10</div>
         <h2 id="questionText">Upper margin of the band</h2>
         
@@ -297,6 +356,12 @@
         document.getElementById('screen-question').classList.add('active');
         document.getElementById('liveScoreBadge').style.display = 'block';
         document.getElementById('progressBar').style.display = 'block';
+        
+        // Mobile layout adjustment: move the live score into the document flow
+        if(window.innerWidth <= 650) {
+            document.getElementById('liveScoreBadge').style.position = 'relative';
+        }
+        
         renderQuestion();
     }
 
@@ -312,13 +377,17 @@
 
         for (let i = 1; i <= 5; i++) {
             const isSelected = scores[itemIndex] === i ? 'selected' : '';
-            const descriptionText = descriptions[itemIndex][i - 1]; 
+            const descriptionText = descriptions[itemIndex][i - 1];
+            
+            const imagePath = `BRASS/I${currentStep}_S${i}.jpg`;
             
             const optionHTML = `
                 <div class="analog-option ${isSelected}" onclick="selectOption(${i})">
-                    <div class="text-container">
-                        ${descriptionText}
+                    <div class="image-container">
+                        <img src="${imagePath}" alt="Score ${i} Visual Analog" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="img-fallback" style="display:none;">Missing Image:<br>${imagePath}</div>
                     </div>
+                    <div class="option-desc">${descriptionText}</div>
                     <div class="option-label">${i}</div>
                 </div>
             `;
@@ -336,6 +405,11 @@
         
         nextBtn.disabled = scores[itemIndex] === null;
         updateLiveScore();
+        
+        // Scroll to top of question area on mobile to ensure visibility of options
+        if(window.innerWidth <= 650) {
+            window.scrollTo(0, 0);
+        }
     }
 
     function selectOption(scoreValue) {
@@ -387,7 +461,6 @@
         const circle = document.getElementById('finalScoreCircle');
         const inferenceText = document.getElementById('dynamicInference');
 
-        // Dynamic Inference Logic
         if (finalPercentage >= 80) {
             circle.style.borderColor = "var(--success-green)";
             inferenceText.style.color = "var(--success-green)";
