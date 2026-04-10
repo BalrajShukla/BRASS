@@ -39,8 +39,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
             border: 1px solid var(--border-color);
             position: relative;
-            /* Changed from hidden to auto to allow scrolling on small devices if needed */
-            overflow: hidden; 
+            overflow: auto; 
             min-height: 550px;
             display: flex;
             flex-direction: column;
@@ -228,40 +227,19 @@
         }
         .progress-bar-fill { height: 100%; background: var(--accent-blue); width: 0%; transition: width 0.3s ease; }
 
-        /* =========================================
-           MOBILE RESPONSIVENESS (Media Queries)
-           ========================================= */
+        /* Mobile Responsiveness */
         @media (max-width: 1000px) {
-            .analog-grid {
-                grid-template-columns: repeat(3, 1fr); /* 3 columns on small laptops/tablets */
-            }
+            .analog-grid { grid-template-columns: repeat(3, 1fr); }
             .screen { padding: 30px 20px; }
         }
 
         @media (max-width: 650px) {
             body { padding: 10px; }
-            .analog-grid {
-                grid-template-columns: 1fr; /* 1 column stack on mobile */
-            }
-            .image-container {
-                height: auto;
-                min-height: 120px;
-            }
-            .navigation {
-                flex-direction: column-reverse; /* Put 'Next' button on top for easier tapping */
-                gap: 15px;
-            }
-            .btn {
-                width: 100%; /* Full width buttons */
-                padding: 15px;
-            }
-            .live-score {
-                position: relative;
-                top: 0; right: 0;
-                margin-bottom: 20px;
-                text-align: center;
-                display: inline-block;
-            }
+            .analog-grid { grid-template-columns: 1fr; }
+            .image-container { height: auto; min-height: 120px; }
+            .navigation { flex-direction: column-reverse; gap: 15px; }
+            .btn { width: 100%; padding: 15px; }
+            .live-score { position: relative; top: 0; right: 0; margin-bottom: 20px; text-align: center; display: inline-block; }
             h1 { font-size: 24px; }
             h2 { font-size: 18px; }
         }
@@ -311,8 +289,7 @@
             </div>
             
             <div class="result-inference">
-                <p id="dynamicInference" style="font-size: 20px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
-                    </p>
+                <p id="dynamicInference" style="font-size: 20px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;"></p>
             </div>
 
             <button class="btn btn-outline" onclick="location.reload()">Start New Assessment</button>
@@ -357,7 +334,6 @@
         document.getElementById('liveScoreBadge').style.display = 'block';
         document.getElementById('progressBar').style.display = 'block';
         
-        // Mobile layout adjustment: move the live score into the document flow
         if(window.innerWidth <= 650) {
             document.getElementById('liveScoreBadge').style.position = 'relative';
         }
@@ -379,7 +355,8 @@
             const isSelected = scores[itemIndex] === i ? 'selected' : '';
             const descriptionText = descriptions[itemIndex][i - 1];
             
-            const imagePath = `BRASS/I${currentStep}_S${i}.jpg`;
+            // THE FIX: Looking specifically for .png files
+            const imagePath = `BRASS/I${currentStep}_S${i}.png`;
             
             const optionHTML = `
                 <div class="analog-option ${isSelected}" onclick="selectOption(${i})">
@@ -406,7 +383,6 @@
         nextBtn.disabled = scores[itemIndex] === null;
         updateLiveScore();
         
-        // Scroll to top of question area on mobile to ensure visibility of options
         if(window.innerWidth <= 650) {
             window.scrollTo(0, 0);
         }
